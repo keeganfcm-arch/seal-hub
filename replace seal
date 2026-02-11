@@ -1,0 +1,63 @@
+const newImageURL = "https://img.sanishtech.com/u/0c172360e902f9a814b9488678c8a6fe.jpeg";
+
+/* Replace <img> elements */
+function replaceImage(img) {
+  if (img.tagName === "IMG") {
+    img.src = newImageURL;
+    img.srcset = "";
+    img.removeAttribute("srcset");
+    img.removeAttribute("sizes");
+  }
+}
+
+/* Replace background images */
+function replaceBackground(element) {
+  const style = window.getComputedStyle(element);
+  const bgImage = style.backgroundImage;
+
+  if (bgImage && bgImage !== "none") {
+    element.style.backgroundImage = `url("${newImageURL}")`;
+  }
+}
+
+/* Replace everything initially */
+function replaceAll() {
+  document.querySelectorAll("img").forEach(replaceImage);
+  document.querySelectorAll("*").forEach(replaceBackground);
+}
+
+replaceAll();
+
+/* Observe new elements */
+const observer = new MutationObserver(mutations => {
+  mutations.forEach(mutation => {
+    mutation.addedNodes.forEach(node => {
+      if (node.nodeType === 1) {
+        if (node.tagName === "IMG") {
+          replaceImage(node);
+        }
+
+        replaceBackground(node);
+        node.querySelectorAll?.("img").forEach(replaceImage);
+        node.querySelectorAll?.("*").forEach(replaceBackground);
+      }
+    });
+  });
+});
+
+observer.observe(document.documentElement, {
+  childList: true,
+  subtree: true
+});
+
+/* Force override via CSS (strongest method) */
+const style = document.createElement("style");
+style.innerHTML = `
+  img {
+    content: url("${newImageURL}") !important;
+  }
+  * {
+    background-image: url("${newImageURL}") !important;
+  }
+`;
+document.head.appendChild(style);
